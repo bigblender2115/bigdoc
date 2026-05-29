@@ -1,4 +1,5 @@
 use std::process::Command;
+use colored::Colorize;
 
 use crate::config::Config;
 use crate::types::CheckResult;
@@ -16,7 +17,7 @@ pub fn parse_and_tell(tool: &str, output: &str, required: &str) -> CheckResult {
     if version.is_empty() {
         return CheckResult::Missing {
             tool: tool.to_string(),
-            ver_required: required.to_string(),
+            ver_required: required.to_string()
         };
     }
 
@@ -40,6 +41,9 @@ pub fn parse_and_tell(tool: &str, output: &str, required: &str) -> CheckResult {
 
 // pretty much the entire logic
 pub fn check(config: Config) {
+
+    let mut results: Vec<CheckResult> = Vec::new();
+
     // checks each tool against the configured version
     for (tool, version) in config.tools {
         if let Some(command) = TOOLS.get(tool.as_str()) {
@@ -59,33 +63,46 @@ pub fn check(config: Config) {
                         };
 
                         // println!("DEBUG: '{}'", output_str.trim());
-                        
+
                         let result = parse_and_tell(&tool, output_str.trim(), &version);
                         match result {
-                            CheckResult::Valid { tool, ver } => {
-                                println!("{:<12} {:<12} {}", "[OK]", tool, ver)
+                            CheckResult::Valid {tool, ver } => {
+                                results.push(CheckResult::Valid { tool, ver });
                             }
-                            CheckResult::Outdated {
-                                tool,
-                                ver,
-                                ver_required,
-                            } => println!(
-                                "{:<12} {:<12} {:<10} (required {})",
-                                "[OUTDATED]", tool, ver, ver_required
-                            ),
-                            CheckResult::Missing { tool, ver_required } => println!(
-                                "{:<12} {:<12} (required {})",
-                                "[MISSING]", tool, ver_required
-                            ),
+                            CheckResult::Outdated { tool, ver, ver_required } => {
+                                results.push(CheckResult::Outdated {tool, ver, ver_required });
+                            }
+                            _ => {}
                         }
                     }
-                    Err(_e) => {
-                        println!("{:<12} {:<12} (required {})", "[MISSING]", tool, version);
+                    Err(_) => {
+                        results.push(CheckResult::Missing {tool: tool.clone(), ver_required: version.clone() });
                     }
                 }
             }
         } else {
             println!("No command found for '{}'", tool);
+        }
+    }
+
+    //sorting and printing
+    results.sort_by_key(|result| match result {
+        CheckResult::Valid {tool: _, ver: _} => 0,
+        CheckResult::Outdated {tool: _, ver: _, ver_required: _} => 1,
+        CheckResult::Missing {tool: _, ver_required: _} => 2,
+    });
+
+    for result in results {
+        match result {
+            CheckResult::Valid { tool, ver } => {
+                println!("{:<12} {:<12} {}", "[OK]".green(), tool, ver);
+            }
+            CheckResult::Outdated { tool, ver, ver_required } => {
+                println!("{:<12} {:<12} {:<10} (required {})", "[OUTDATED]".yellow(), tool, ver, ver_required);
+            }
+            CheckResult::Missing { tool, ver_required } => {
+                println!("{:<12} {:<12} (required {})", "[MISSING]".red().bold(), tool, ver_required);
+            }
         }
     }
 }
