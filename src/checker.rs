@@ -1,33 +1,9 @@
-use phf::phf_map;
-use std::fs;
-use std::path::Path;
 use std::process::Command;
 
 use crate::config::Config;
+use crate::types::CheckResult;
+use crate::tools::TOOLS;
 
-const TOOLS: phf::Map<&'static str, &'static str> = phf_map! {
-    "python" => "python --version",
-    "pip" => "pip --version",
-    "node" => "node --version",
-    "cargo" => "cargo --version",
-    "ruby" => "ruby --version",
-};
-
-pub enum CheckResult {
-    Valid {
-        tool: String,
-        ver: String,
-    },
-    Outdated {
-        tool: String,
-        ver: String,
-        ver_required: String,
-    },
-    Missing {
-        tool: String,
-        ver_required: String,
-    },
-}
 
 pub fn parse_and_tell(tool: &str, output: &str, required: &str) -> CheckResult {
     let version = output
@@ -63,13 +39,7 @@ pub fn parse_and_tell(tool: &str, output: &str, required: &str) -> CheckResult {
 }
 
 // pretty much the entire logic
-pub fn check() {
-    let path = Path::new(".devspec.toml");
-    let toml_content = fs::read_to_string(path)
-        .expect("Failed to read .devspec.toml file. Please make sure it exists");
-    let config: Config =
-        toml::from_str(&toml_content).expect("Failed to parse TOML. Check formatting");
-
+pub fn check(config: Config) {
     // checks each tool against the configured version
     for (tool, version) in config.tools {
         if let Some(command) = TOOLS.get(tool.as_str()) {
@@ -109,7 +79,7 @@ pub fn check() {
                             ),
                         }
                     }
-                    Err(e) => {
+                    Err(_e) => {
                         println!("{:<12} {:<12} (required {})", "[MISSING]", tool, version);
                     }
                 }
