@@ -12,4 +12,8 @@ pub enum CheckResult {
         tool: String,
         ver_required: String,
     },
+    InvalidSpec {
+        tool: String,
+        reason: String,
+    }
 }
