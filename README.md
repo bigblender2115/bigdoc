@@ -52,8 +52,3 @@ supports standard semver constraints: `>=`, `>`, `=`, `<`, `<=`, `~`, `^`.
 | languages | python, python3, node, ruby, go, java, rustc, gcc, clang |
 | package managers | pip, pip3, cargo, npm, yarn, pnpm, bun, gem |
 | tools | git, docker, kubectl, terraform, make, cmake, curl, wget |
-
-## exit codes
-
-- `0`: all checks passed
-- `1`: one or more tools are outdated, missing, or have an invalid spec
