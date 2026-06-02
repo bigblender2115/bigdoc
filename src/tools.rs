@@ -32,3 +32,34 @@ pub const TOOLS: phf::Map<&'static str, &'static [&'static str]> = phf_map! {
     "curl" => &["curl", "--version"],
     "wget" => &["wget", "--version"],
 };
+
+pub const FIX_COMMANDS: phf::Map<&'static str, &'static str> = phf_map! {
+    // languages
+    "python" => "https://www.python.org/downloads/",
+    "python3" => "https://www.python.org/downloads/",
+    "node" => "https://nodejs.org/en/download",
+    "ruby" => "https://www.ruby-lang.org/en/documentation/installation/",
+    "go" => "https://go.dev/dl/",
+    "java" => "https://adoptium.net/",
+    "rustc" => "https://rustup.rs/",
+    "gcc" => "https://gcc.gnu.org/install/",
+    "clang" => "https://releases.llvm.org/",
+    // package managers
+    "pip" => "python -m ensurepip --upgrade",
+    "pip3" => "python3 -m ensurepip --upgrade",
+    "cargo" => "https://rustup.rs/",
+    "npm" => "https://nodejs.org/en/download",
+    "yarn" => "npm install -g yarn",
+    "pnpm" => "npm install -g pnpm",
+    "bun" => "https://bun.sh/",
+    "gem" => "https://www.ruby-lang.org/en/documentation/installation/",
+    // tools
+    "git" => "https://git-scm.com/downloads",
+    "docker" => "https://docs.docker.com/get-docker/",
+    "kubectl" => "https://kubernetes.io/docs/tasks/tools/",
+    "terraform" => "https://developer.hashicorp.com/terraform/install",
+    "make" => "https://www.gnu.org/software/make/",
+    "cmake" => "https://cmake.org/download/",
+    "curl" => "https://curl.se/download.html",
+    "wget" => "https://www.gnu.org/software/wget/",
+};

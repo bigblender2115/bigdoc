@@ -3,7 +3,7 @@ use colored::Colorize;
 use regex::Regex;
 use crate::config::Config;
 use crate::types::CheckResult;
-use crate::tools::TOOLS;
+use crate::tools::{TOOLS, FIX_COMMANDS};
 lazy_static::lazy_static! {
     static ref VERSION_REGEX: Regex = Regex::new(r"(?:go|v)?(\d+\.\d+\.\d+)").unwrap();
 }
@@ -47,8 +47,17 @@ pub fn parse_and_tell(tool: &str, output: &str, required: &str) -> CheckResult {
         }
     }
 }
+
+fn try_fix(tool: &str) {
+    if let Some(cmd) = FIX_COMMANDS.get(tool) {
+        println!("         fix: {}", cmd);
+    } else {
+        println!("         fix: no fix command available for '{}'", tool);
+    }
+}
+
 // pretty much the entire logic
-pub fn check(config: Config) {
+pub fn check(config: Config, fix: bool) {
     let mut results: Vec<CheckResult> = Vec::new();
     // checks each tool against the configured version
     for (tool, version) in config.tools {
@@ -65,7 +74,9 @@ pub fn check(config: Config) {
                         } else {
                             stdout.to_string()
                         };
+                        
                         // println!("DEBUG: '{}'", output_str.trim());
+                        
                         let result = parse_and_tell(&tool, output_str.trim(), &version);
                         results.push(result);
                     }
@@ -97,9 +108,11 @@ pub fn check(config: Config) {
             }
             CheckResult::Outdated { tool, ver, ver_required } => {
                 println!("{:<12} {:<12} {:<10} (required {})", "[OUTDATED]".yellow(), tool, ver, ver_required);
+                if fix { try_fix(tool); }
             }
             CheckResult::Missing { tool, ver_required } => {
                 println!("{:<12} {:<12} (required {})", "[MISSING]".red().bold(), tool, ver_required);
+                if fix { try_fix(tool); }
             }
             CheckResult::InvalidSpec { tool, reason } => {
                 println!("{:<12} {:<12} {}", "[ERROR]".red().bold(), tool, reason);

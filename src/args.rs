@@ -8,6 +8,9 @@ pub struct Args {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    Check,
+    Check {
+        #[arg(long)]
+        fix: bool,
+    },
     Init,
 }
