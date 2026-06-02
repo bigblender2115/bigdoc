@@ -9,6 +9,7 @@ use crate::config::Config;
 mod args;
 mod checker;
 mod config;
+mod port_checker;
 mod tools;
 mod types;
 
@@ -28,22 +29,22 @@ fn main() {
         Commands::Check { fix } => {
             let toml_content = fs::read_to_string(path)
                 .expect("Failed to read .devspec.toml file. Please make sure it exists");
-            let config: Config =
+            let mut config: Config =
                 toml::from_str(&toml_content).expect("Failed to parse TOML. Check formatting");
+            if let Some(ports) = config.ports.take() {
+                port_checker::check_ports(ports.required);
+            }
             checker::check(config, *fix);
         }
         Commands::Init => {
             if Path::new(".devspec.toml").exists() {
-                println!("already exists");
+                println!(".devspec.toml already exists");
                 std::process::exit(1);
             }
 
-            fs::write(
-                ".devspec.toml",
-                "[tools]\n# node = \">=20\"\n# python = \">=3.11\"\n",
-            )
-            .expect("failed to create .devspec.toml");
-            println!("created .devspec.toml");
+            fs::write(".devspec.toml", "[tools]\n# node = \">=20\"\n")
+                .expect("failed to create .devspec.toml");
+            println!("created .devspec.toml with default node version requirement");
         }
     }
 }

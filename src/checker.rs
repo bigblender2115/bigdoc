@@ -60,7 +60,7 @@ fn try_fix(tool: &str) {
 pub fn check(config: Config, fix: bool) {
     let mut results: Vec<CheckResult> = Vec::new();
     // checks each tool against the configured version
-    for (tool, version) in config.tools {
+    for (tool, version) in config.tools.unwrap_or_default() {
         if let Some(command_parts) = TOOLS.get(tool.as_str()) { // command_parts is &'static [&'static str]
             // "splitting command into program and args and running it, then capturing the version from the output" - gpt
             if let Some(program) = command_parts.get(0) {
@@ -101,6 +101,9 @@ pub fn check(config: Config, fix: bool) {
         CheckResult::Missing {tool: _, ver_required: _} => 2,
         CheckResult::InvalidSpec {tool: _, reason: _} => 3,
     });
+
+    println!("------------- [TOOLS]-------------");
+    
     for result in &results {
         match result {
             CheckResult::Valid { tool, ver } => {
