@@ -1,11 +1,8 @@
 use clap::Parser;
 use std::fs;
 use std::path::Path;
-use toml;
-
 use crate::args::Commands;
 use crate::config::Config;
-
 mod args;
 mod checker;
 mod config;
@@ -17,22 +14,28 @@ mod sync;
 
 fn main() {
     let args = args::Args::parse();
-
     match &args.command {
         Commands::Check { fix } => {
             let path = if Path::new(".devspec.toml").exists() {
                 Path::new(".devspec.toml")
             } else {
-                println!(
-                    "No .devspec.toml file found. \nMake sure .devspec.toml exists in current directory. \n\"bigdoc init\" to create one"
-                );
+                eprintln!("No .devspec.toml file found.\nMake sure .devspec.toml exists in current directory.\n\"bigdoc init\" to create one");
                 std::process::exit(1);
             };
-
-            let toml_content = fs::read_to_string(path)
-                .expect("Failed to read .devspec.toml file. Please make sure it exists");
-            let mut config: Config =
-                toml::from_str(&toml_content).expect("Failed to parse TOML. Check formatting");
+            let toml_content = match fs::read_to_string(path) {
+                Ok(c) => c,
+                Err(e) => {
+                    eprintln!("failed to read .devspec.toml: {}", e);
+                    std::process::exit(1);
+                }
+            };
+            let mut config: Config = match toml::from_str(&toml_content) {
+                Ok(c) => c,
+                Err(e) => {
+                    eprintln!("failed to parse .devspec.toml: {}", e);
+                    std::process::exit(1);
+                }
+            };
             if let Some(ports) = config.ports.take() {
                 port_checker::check_ports(ports.required);
             }
@@ -43,10 +46,13 @@ fn main() {
                 println!(".devspec.toml already exists");
                 std::process::exit(1);
             }
-
-            fs::write(".devspec.toml", "[tools]\n# node = \">=20\"\n")
-                .expect("failed to create .devspec.toml");
-            println!("created .devspec.toml with default node version requirement");
+            match fs::write(".devspec.toml", "[tools]\n# node = \">=20\"\n") {
+                Ok(_) => println!("created .devspec.toml"),
+                Err(e) => {
+                    eprintln!("failed to create .devspec.toml: {}", e);
+                    std::process::exit(1);
+                }
+            }
         }
         Commands::Scan => {
             let result = scanner::scan();
@@ -64,12 +70,19 @@ fn main() {
                 content.push_str(&port_strs.join(", "));
                 content.push_str("]\n");
             }
-            fs::write(".devspec.toml", content).expect("failed to write .devspec.toml");
-            println!("generated .devspec.toml");
+            match fs::write(".devspec.toml", content) {
+                Ok(_) => println!("generated .devspec.toml"),
+                Err(e) => {
+                    eprintln!("failed to write .devspec.toml: {}", e);
+                    std::process::exit(1);
+                }
+            }
         }
         Commands::Sync { url } => {
-            sync::sync_spec(url).expect("failed to sync");
-            println!("synced with {}", url);
+            if let Err(e) = sync::sync_spec(url) {
+                eprintln!("failed to sync: {}", e);
+                std::process::exit(1);
+            }
         }
     }
 }
