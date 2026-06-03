@@ -13,4 +13,8 @@ pub enum Commands {
         fix: bool,
     },
     Init,
+    Scan,
+    Sync {
+        url: String,
+    },
 }

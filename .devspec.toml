@@ -1,0 +1,5 @@
+[tools]
+npm = ">=1"
+node = ">=20"
+rustc = ">=1"
+cargo = ">=1"

@@ -1,0 +1,12 @@
+[tools]
+node = ">=20"
+npm = ">=10"
+go = ">=1"
+python3 = ">=3.8"
+pip = ">=1"
+docker = ">=20"
+java = ">=17"
+maven = ">=3"
+
+[ports]
+required = [3000, 5432, 6379]
