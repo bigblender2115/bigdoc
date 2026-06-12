@@ -1,3 +1,4 @@
+//Pls do add any lang/tool if required
 use phf::phf_map;
 
 pub const TOOLS: phf::Map<&'static str, &'static [&'static str]> = phf_map! {
